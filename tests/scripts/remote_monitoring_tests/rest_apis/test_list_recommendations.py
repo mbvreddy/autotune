@@ -1046,7 +1046,7 @@ def test_list_recommendations_for_diff_reco_terms_with_only_latest(test_name, nu
         list_of_result_json_arr.append(result_json_arr)
         write_json_data_to_file(update_results_json_file, result_json_arr)
 
-        response = update_results(update_results_json_file, logging)
+        response = update_results(update_results_json_file, False)
         data = response.json()
         #print("message = ", data['message'])
         assert response.status_code == SUCCESS_STATUS_CODE
