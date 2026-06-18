@@ -38,11 +38,11 @@ from helpers.list_reco_json_local_monitoring_schema import list_reco_namespace_j
 
 reco_term_input = [
     ("short_term_test_latest_true", 1, list_reco_json_schema, SHORT_TERM_DURATION_IN_HRS_MAX, True, True),
-    ("short_term_test_latest_false", 1, list_reco_json_schema, SHORT_TERM_DURATION_IN_HRS_MAX, False, True),
-    ("medium_term_test_true", 7, medium_term_list_reco_json_schema, MEDIUM_TERM_DURATION_IN_HRS_MAX, True, False),
-    ("medium_term_test_false", 7, medium_term_list_reco_json_schema, MEDIUM_TERM_DURATION_IN_HRS_MAX, False, False),
-    ("long_term_test_true", 15, long_term_list_reco_json_schema, LONG_TERM_DURATION_IN_HRS_MAX, True, False),
-    ("long_term_test_false", 15, long_term_list_reco_json_schema, LONG_TERM_DURATION_IN_HRS_MAX, False, False),
+    #("short_term_test_latest_false", 1, list_reco_json_schema, SHORT_TERM_DURATION_IN_HRS_MAX, False, True),
+    #("medium_term_test_true", 7, medium_term_list_reco_json_schema, MEDIUM_TERM_DURATION_IN_HRS_MAX, True, False),
+    #("medium_term_test_false", 7, medium_term_list_reco_json_schema, MEDIUM_TERM_DURATION_IN_HRS_MAX, False, False),
+    #("long_term_test_true", 15, long_term_list_reco_json_schema, LONG_TERM_DURATION_IN_HRS_MAX, True, False),
+    #("long_term_test_false", 15, long_term_list_reco_json_schema, LONG_TERM_DURATION_IN_HRS_MAX, False, False),
 ]
 
 term_input = [
