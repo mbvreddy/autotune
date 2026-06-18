@@ -1060,7 +1060,7 @@ def test_list_recommendations_for_diff_reco_terms_with_only_latest(test_name, nu
         assert data[0]['kubernetes_objects'][0]['containers'][0]['recommendations']['notifications'][
                    NOTIFICATION_CODE_FOR_RECOMMENDATIONS_AVAILABLE][
                    'message'] == RECOMMENDATIONS_AVAILABLE
-    experiment_name = None
+    #experiment_name = None
     response = list_recommendations(experiment_name, latest, rm=True)
 
     list_reco_json = response.json()
@@ -1068,6 +1068,7 @@ def test_list_recommendations_for_diff_reco_terms_with_only_latest(test_name, nu
 
     print(json.dumps(list_reco_json))
     # Validate the json against the json schema
+
     errorMsg = validate_list_reco_json(list_reco_json, reco_json_schema)
     assert errorMsg == ""
     for i in range(num_exps):
