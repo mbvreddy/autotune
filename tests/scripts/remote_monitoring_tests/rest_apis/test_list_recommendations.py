@@ -1048,7 +1048,7 @@ def test_list_recommendations_for_diff_reco_terms_with_only_latest(test_name, nu
 
         response = update_results(update_results_json_file, logging)
         data = response.json()
-        print("message = ", data['message'])
+        #print("message = ", data['message'])
         assert response.status_code == SUCCESS_STATUS_CODE
         assert data['status'] == SUCCESS_STATUS
         assert data['message'] == UPDATE_RESULTS_SUCCESS_MSG
@@ -1066,6 +1066,7 @@ def test_list_recommendations_for_diff_reco_terms_with_only_latest(test_name, nu
     list_reco_json = response.json()
     assert response.status_code == SUCCESS_200_STATUS_CODE
 
+    print(json.dumps(list_reco_json))
     # Validate the json against the json schema
     errorMsg = validate_list_reco_json(list_reco_json, reco_json_schema)
     assert errorMsg == ""
