@@ -178,8 +178,15 @@ def update_recommendations(experiment_name, startTime, endTime):
 
 def valid_differences(differences):
     valid = True
+    assert len(differences) <= 3, f"{differences.keys()} is too long"
     items_added = differences['dictionary_item_added']
     items_removed = differences['dictionary_item_removed']
+    values_changed = differences['values_changed']
+
+    assert items_added is not None
+    assert items_removed is not None
+    assert values_changed is not None
+
     for item in items_added:
         if not item.endswith("['resources']"):
             valid = False
@@ -188,6 +195,14 @@ def valid_differences(differences):
     if valid:
         for item in items_removed:
             if item.endswith("['requests']") or item.endswith("['limits']"):
+                continue
+            else:
+                valid = False
+                break
+
+    if valid:
+        for item, value in values_changed.items():
+            if item.endswith("['version']"):
                 continue
             else:
                 valid = False
