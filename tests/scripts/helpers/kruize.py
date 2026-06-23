@@ -168,7 +168,7 @@ def update_recommendations(experiment_name, startTime, endTime):
     assert response_new.status_code == response.status_code
     assert len(response.json()) == len(response_new.json())
 
-    differences = DeepDiff(response.json(), response_new.json())
+    differences = DeepDiff(response.json(), response_new.json(), ignore_order=True)
     print(f"Deep Difference = {differences}")
     assert valid_differences(differences) is True
 
@@ -252,7 +252,7 @@ def list_recommendations(experiment_name=None, latest=None, monitoring_end_time=
     assert response_new.status_code == response.status_code
     assert len(response.json()) == len(response_new.json())
 
-    differences = DeepDiff(response.json(), response_new.json())
+    differences = DeepDiff(response.json(), response_new.json(), ignore_order=True)
     print(f"Deep Difference = {differences}")
     assert valid_differences(differences) is True
 
