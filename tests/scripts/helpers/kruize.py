@@ -17,9 +17,6 @@ limitations under the License.
 import json
 import requests
 import subprocess
-import deepdiff
-from deepdiff import DeepDiff
-
 
 def get_kruize_url():
     return URL
@@ -141,7 +138,7 @@ def update_results(result_json_file, logging=True):
 
 
 # Description: This function generates recommendation for the given experiment_name , start time and end time .
-def update_recommendations(experiment_name, startTime, endTime):
+def update_recommendations(experiment_name, startTime, endTime, new_api=False):
     print("\n************************************************************")
     print("\nUpdating the recommendation \n for %s for dates Start-time: %s and End-time: %s..." % (
         experiment_name, startTime, endTime))
@@ -153,75 +150,35 @@ def update_recommendations(experiment_name, startTime, endTime):
     if startTime:
         queryString = queryString + "&interval_start_time=%s" % (startTime)
 
-    url = URL + "/updateRecommendations?%s" % (queryString)
+    if new_api:
+        url = URL + "/kruize/api/v1/recommendations?%s" % (queryString)
+    else:
+        url = URL + "/updateRecommendations?%s" % (queryString)
     print("URL = ", url)
     response = requests.post(url, )
     print("Response status code = ", response.status_code)
     print(response.text)
-
-    url_new = URL + "/kruize/api/v1/recommendations?%s" % (queryString)
-    print("URL = ", url_new)
-    response_new = requests.post(url_new, )
-    print("Response status code = ", response_new.status_code)
-    print(response_new.text)
-    # Validate if response from new endpoint is same as old except resources nesting.
-    assert response_new.status_code == response.status_code
-    assert len(response.json()) == len(response_new.json())
-
-    differences = DeepDiff(response.json(), response_new.json(), ignore_order=True)
-    print(f"Deep Difference = {differences}")
-    assert valid_differences(differences) is True
-
     print("\n************************************************************")
-    return response #return old response for validation
+    return response
 
-
-def valid_differences(differences):
-    valid = True
-    assert len(differences) <= 3, f"{differences.keys()} is too long"
-    items_added = differences['dictionary_item_added']
-    items_removed = differences['dictionary_item_removed']
-    values_changed = differences['values_changed']
-
-    assert items_added is not None
-    assert items_removed is not None
-    assert values_changed is not None
-
-    for item in items_added:
-        if not item.endswith("['resources']"):
-            valid = False
-            break
-
-    if valid:
-        for item in items_removed:
-            if item.endswith("['requests']") or item.endswith("['limits']"):
-                continue
-            else:
-                valid = False
-                break
-
-    if valid:
-        for item, value in values_changed.items():
-            if item.endswith("['version']"):
-                continue
-            else:
-                valid = False
-                break
-
-    return valid
 
 # Description: This function obtains the recommendations from Kruize Autotune using listRecommendations API
 # Input Parameters: experiment name, flag indicating latest result and monitoring end time
-def list_recommendations(experiment_name=None, latest=None, monitoring_end_time=None, rm=False):
+def list_recommendations(experiment_name=None, latest=None, monitoring_end_time=None, rm=False, new_api=False):
     PARAMS = ""
     print("\nListing the recommendations...")
-    url = URL + "/listRecommendations"
+    if new_api:
+        url = URL + "/kruize/api/v1/recommendations"
+    else:
+        url = URL + "/listRecommendations"
     if rm:
         url += "?rm=true"
     print("URL = ", url)
 
     if experiment_name == None:
-        if latest != None:
+        if latest == None and monitoring_end_time == None:
+            response = requests.get(url)
+        elif latest != None:
             PARAMS = {'latest': latest}
         elif monitoring_end_time != None:
             PARAMS = {'monitoring_end_time': monitoring_end_time}
@@ -240,23 +197,8 @@ def list_recommendations(experiment_name=None, latest=None, monitoring_end_time=
     print("\n************************************************************")
     print(response.text)
     print("\n************************************************************")
+    return response
 
-    url_new = URL + "/kruize/api/v1/recommendations"
-    if rm:
-        url_new += "?rm=true"
-    print("URL = ", url_new)
-    response_new = requests.get(url=url_new, params=PARAMS)
-    print("Response status code = ", response_new.status_code)
-    print(response_new.text)
-    # Validate if response from new endpoint is same as old except resources nesting.
-    assert response_new.status_code == response.status_code
-    assert len(response.json()) == len(response_new.json())
-
-    differences = DeepDiff(response.json(), response_new.json(), ignore_order=True)
-    print(f"Deep Difference = {differences}")
-    assert valid_differences(differences) is True
-
-    return response  # return old response for validation
 
 # Description: This function deletes the experiment and posts the experiment using createExperiment API to Kruize Autotune
 # Input Parameters: experiment input json
