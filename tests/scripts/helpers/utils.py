@@ -660,7 +660,7 @@ def term_based_start_time(input_date_str, term):
     return output_date_str
 
 def validate_reco_json(create_exp_json, update_results_json, list_reco_json, expected_duration_in_hours=None,
-                       test_name=None):
+                       test_name=None, new_api=False):
     # Validate experiment
     assert create_exp_json["experiment_name"] == list_reco_json["experiment_name"]
     assert create_exp_json["cluster_name"] == list_reco_json["cluster_name"]
@@ -674,15 +674,15 @@ def validate_reco_json(create_exp_json, update_results_json, list_reco_json, exp
             create_exp_kubernetes_obj = create_exp_json["kubernetes_objects"][i]
             list_reco_kubernetes_obj = list_reco_json["kubernetes_objects"][i]
             validate_kubernetes_obj(create_exp_kubernetes_obj, update_results_kubernetes_obj, update_results_json,
-                                    list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type)
+                                    list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type, new_api)
     else:
         update_results_kubernetes_obj = None
         create_exp_kubernetes_obj = create_exp_json["kubernetes_objects"][0]
         list_reco_kubernetes_obj = list_reco_json["kubernetes_objects"][0]
         validate_kubernetes_obj(create_exp_kubernetes_obj, update_results_kubernetes_obj, update_results_json,
-                                list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type)
+                                list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type, new_api)
 
-def validate_local_monitoring_reco_json(create_exp_json, list_reco_json, expected_duration_in_hours=None, test_name=None):
+def validate_local_monitoring_reco_json(create_exp_json, list_reco_json, expected_duration_in_hours=None, test_name=None, new_api=False):
     # Validate experiment
     assert create_exp_json["experiment_name"] == list_reco_json["experiment_name"]
     assert create_exp_json["cluster_name"] == list_reco_json["cluster_name"]
@@ -692,7 +692,7 @@ def validate_local_monitoring_reco_json(create_exp_json, list_reco_json, expecte
     list_reco_kubernetes_obj = list_reco_json["kubernetes_objects"][0]
     experiment_type = create_exp_json.get("experiment_type")
     validate_local_monitoring_kubernetes_obj(create_exp_kubernetes_obj, list_reco_kubernetes_obj, expected_duration_in_hours,
-                                             test_name, experiment_type)
+                                             test_name, experiment_type, new_api)
 
 def validate_list_exp_results_count(expected_results_count, list_exp_json):
 
@@ -718,7 +718,7 @@ def count_results_objects(list_exp_json):
 
 
 def validate_kubernetes_obj(create_exp_kubernetes_obj, update_results_kubernetes_obj, update_results_json,
-                            list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type):
+                            list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type, new_api=False):
 
     if experiment_type == NAMESPACE_EXPERIMENT_TYPE:
         # validate the containers list, should be empty
@@ -728,7 +728,7 @@ def validate_kubernetes_obj(create_exp_kubernetes_obj, update_results_kubernetes
         assert list_reco_kubernetes_obj["namespaces"]["namespace"] == create_exp_kubernetes_obj["namespaces"]["namespace"]
         update_results_namespace = create_exp_kubernetes_obj["namespaces"]
         list_reco_namespace = list_reco_kubernetes_obj["namespaces"]
-        validate_namespace(update_results_namespace, update_results_json, list_reco_namespace, expected_duration_in_hours, test_name, experiment_type)
+        validate_namespace(update_results_namespace, update_results_json, list_reco_namespace, expected_duration_in_hours, test_name, experiment_type, new_api)
     else:
         # Validate type, name, namespace
         assert list_reco_kubernetes_obj["type"] == create_exp_kubernetes_obj["type"]
@@ -765,15 +765,15 @@ def validate_kubernetes_obj(create_exp_kubernetes_obj, update_results_kubernetes
                     update_results_container = create_exp_kubernetes_obj["containers"][i]
                     list_reco_container = list_reco_kubernetes_obj["containers"][j]
                     validate_container(update_results_container, update_results_json, list_reco_container,
-                                       expected_duration_in_hours, test_name, experiment_type)
+                                       expected_duration_in_hours, test_name, experiment_type, new_api)
 
 def validate_local_monitoring_kubernetes_obj(create_exp_kubernetes_obj,
-                            list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type):
+                            list_reco_kubernetes_obj, expected_duration_in_hours, test_name, experiment_type, new_api=False):
     if experiment_type == NAMESPACE_EXPERIMENT_TYPE:
         assert list_reco_kubernetes_obj["namespaces"]["namespace"] == create_exp_kubernetes_obj["namespaces"]["namespace"]
         list_reco_namespace = list_reco_kubernetes_obj["namespaces"]
         create_exp_namespace = create_exp_kubernetes_obj["namespaces"]
-        validate_local_monitoring_namespace(create_exp_namespace, list_reco_namespace, expected_duration_in_hours, test_name)
+        validate_local_monitoring_namespace(create_exp_namespace, list_reco_namespace, expected_duration_in_hours, test_name, new_api)
     else:
         # Validate type, name, namespace
         assert list_reco_kubernetes_obj["type"] == create_exp_kubernetes_obj["type"]
@@ -793,10 +793,10 @@ def validate_local_monitoring_kubernetes_obj(create_exp_kubernetes_obj,
                         create_exp_kubernetes_obj["containers"][i]["container_name"]:
                     list_reco_container = list_reco_kubernetes_obj["containers"][j]
                     create_exp_container = create_exp_kubernetes_obj["containers"][i]
-                    validate_local_monitoring_container(create_exp_container, list_reco_container, expected_duration_in_hours, test_name)
+                    validate_local_monitoring_container(create_exp_container, list_reco_container, expected_duration_in_hours, test_name, new_api)
 
 def validate_container(update_results_container, update_results_json, list_reco_container, expected_duration_in_hours,
-                       test_name, experiment_type):
+                       test_name, experiment_type, new_api=False):
     # Validate container image name and container name
     if update_results_container != None and list_reco_container != None:
         assert list_reco_container["container_image_name"] == update_results_container["container_image_name"], \
@@ -829,7 +829,8 @@ def validate_container(update_results_container, update_results_json, list_reco_
             if check_if_recommendations_are_present(list_reco_container["recommendations"]):
                 terms_obj = list_reco_container["recommendations"]["data"][interval_end_time]["recommendation_terms"]
                 current_config = list_reco_container["recommendations"]["data"][interval_end_time]["current"]
-
+                if new_api:
+                    current_config.update(current_config.pop("resources"))
                 duration_terms = {'short_term': 4, 'medium_term': 7, 'long_term': 15}
                 for term in duration_terms.keys():
                     if check_if_recommendations_are_present(terms_obj[term]):
@@ -882,6 +883,9 @@ def validate_container(update_results_container, update_results_json, list_reco_
                             for engine_entry in engines_list:
                                 if engine_entry in terms_obj[term]["recommendation_engines"]:
                                     engine_obj = terms_obj[term]["recommendation_engines"][engine_entry]
+                                    if new_api:
+                                        engine_obj["config"].update(engine_obj["config"].pop("resources"))
+                                        engine_obj["variation"].update(engine_obj["variation"].pop("resources"))
                                     validate_config(engine_obj["config"], metrics, experiment_type)
                                     validate_variation(current_config, engine_obj["config"], engine_obj["variation"])
                         # validate Plots data
@@ -901,7 +905,7 @@ def validate_container(update_results_container, update_results_json, list_reco_
 
 #TODO: Extract out the common part from this method which matches with container one to remove redundancy
 def validate_namespace(update_results_namespace, update_results_json, list_reco_namespace, expected_duration_in_hours,
-                       test_name, experiment_type):
+                       test_name, experiment_type, new_api=False):
     # Validate container image name and container name
     if update_results_namespace != None and list_reco_namespace != None:
         assert list_reco_namespace["namespace"] == update_results_namespace["namespace"], \
@@ -929,7 +933,8 @@ def validate_namespace(update_results_namespace, update_results_json, list_reco_
             if check_if_recommendations_are_present(list_reco_namespace["recommendations"]):
                 terms_obj = list_reco_namespace["recommendations"]["data"][interval_end_time]["recommendation_terms"]
                 current_config = list_reco_namespace["recommendations"]["data"][interval_end_time]["current"]
-
+                if new_api:
+                    current_config.update(current_config.pop("resources"))
                 duration_terms = {'short_term': 4, 'medium_term': 7, 'long_term': 15}
                 for term in duration_terms.keys():
                     if check_if_recommendations_are_present(terms_obj[term]):
@@ -982,6 +987,9 @@ def validate_namespace(update_results_namespace, update_results_json, list_reco_
                             for engine_entry in engines_list:
                                 if engine_entry in terms_obj[term]["recommendation_engines"]:
                                     engine_obj = terms_obj[term]["recommendation_engines"][engine_entry]
+                                    if new_api:
+                                        engine_obj["config"].update(engine_obj["config"].pop("resources"))
+                                        engine_obj["variation"].update(engine_obj["variation"].pop("resources"))
                                     validate_config(engine_obj["config"], metrics, experiment_type)
                                     validate_variation(current_config, engine_obj["config"], engine_obj["variation"])
                         # validate Plots data for namespace experiment_type
@@ -999,7 +1007,7 @@ def validate_namespace(update_results_namespace, update_results_json, list_reco_
         assert result == False, f"Recommendations notifications does not contain the expected message - {NOT_ENOUGH_DATA_MSG}"
 
 
-def validate_local_monitoring_container(create_exp_container, list_reco_container, expected_duration_in_hours, test_name):
+def validate_local_monitoring_container(create_exp_container, list_reco_container, expected_duration_in_hours, test_name, new_api=False):
     # Validate container image name and container name
     if create_exp_container != None and list_reco_container != None:
         assert list_reco_container["container_image_name"] == create_exp_container["container_image_name"], \
@@ -1020,7 +1028,8 @@ def validate_local_monitoring_container(create_exp_container, list_reco_containe
 
         terms_obj = list_reco_container["recommendations"]["data"][interval_end_time]["recommendation_terms"]
         current_config = list_reco_container["recommendations"]["data"][interval_end_time]["current"]
-
+        if new_api:
+            current_config.update(current_config.pop("resources"))
         duration_terms = {'short_term': 4, 'medium_term': 7, 'long_term': 15}
         for term in duration_terms.keys():
             if check_if_recommendations_are_present(terms_obj[term]):
@@ -1074,6 +1083,9 @@ def validate_local_monitoring_container(create_exp_container, list_reco_containe
                     for engine_entry in engines_list:
                         if engine_entry in terms_obj[term]["recommendation_engines"]:
                             engine_obj = terms_obj[term]["recommendation_engines"][engine_entry]
+                            if new_api:
+                                engine_obj["config"].update(engine_obj["config"].pop("resources"))
+                                engine_obj["variation"].update(engine_obj["variation"].pop("resources"))
                             validate_config_local_monitoring(engine_obj["config"])
                             validate_variation_local_monitoring(current_config, engine_obj["config"], engine_obj["variation"], engine_obj)
                 # validate Plots data
@@ -1090,7 +1102,7 @@ def validate_local_monitoring_container(create_exp_container, list_reco_containe
         assert len(data) == 0, f"Data is not empty! Length of data - Actual = {len(data)} expected = 0"
 
 
-def validate_local_monitoring_namespace(create_exp_namespace, list_reco_namespace, expected_duration_in_hours, test_name):
+def validate_local_monitoring_namespace(create_exp_namespace, list_reco_namespace, expected_duration_in_hours, test_name, new_api=False):
     # Validate namespace name
     if create_exp_namespace != None and list_reco_namespace != None:
         assert create_exp_namespace["namespace"] == list_reco_namespace["namespace"], \
@@ -1107,7 +1119,8 @@ def validate_local_monitoring_namespace(create_exp_namespace, list_reco_namespac
 
         terms_obj = list_reco_namespace["recommendations"]["data"][interval_end_time]["recommendation_terms"]
         current_config = list_reco_namespace["recommendations"]["data"][interval_end_time]["current"]
-
+        if new_api:
+            current_config.update(current_config.pop("resources"))
         duration_terms = {'short_term': 4, 'medium_term': 7, 'long_term': 15}
         for term in duration_terms.keys():
             if check_if_recommendations_are_present(terms_obj[term]):
@@ -1158,6 +1171,9 @@ def validate_local_monitoring_namespace(create_exp_namespace, list_reco_namespac
                     for engine_entry in engines_list:
                         if engine_entry in terms_obj[term]["recommendation_engines"]:
                             engine_obj = terms_obj[term]["recommendation_engines"][engine_entry]
+                            if new_api:
+                                engine_obj["config"].update(engine_obj["config"].pop("resources"))
+                                engine_obj["variation"].update(engine_obj["variation"].pop("resources"))
                             validate_config_local_monitoring(engine_obj["config"])
                             validate_variation_local_monitoring(current_config, engine_obj["config"], engine_obj["variation"], engine_obj)
                 # validate Plots data
