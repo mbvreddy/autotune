@@ -1,15 +1,8 @@
 import sys, getopt
-import datetime
-import json
-import pytest
 
 sys.path.append("../..")
 
-from helpers.fixtures import *
 from helpers.generate_rm_jsons import *
-from helpers.kruize import *
-from helpers.reco_json_schemas import *
-from helpers.list_reco_json_validate import *
 from helpers.utils import *
 
 failed = 0
@@ -127,12 +120,6 @@ def main(argv):
 			end_time = str(arg)
 		elif opt == '--api-version':
 			api_version = str(arg)
-
-	# pytest.USE_NEW_API is needed by some helper functions imported directly or indirectly in this file.
-	if api_version == "v1":
-		pytest.USE_NEW_API = True
-	else:
-		pytest.USE_NEW_API = False
 
 	validate_reco_json(json_file, end_time)
 	if failed == 0:
